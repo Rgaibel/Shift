@@ -2,6 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, Button, FlatList} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
+import {FriendsState} from '../../redux/friendsSlice';
+import friendsData from '../../data/friendsData'; // Import hardcoded friends data
+import {useSelector} from 'react-redux';
 
 type Props = NativeStackScreenProps<
   RootStackParamList,
@@ -10,7 +13,8 @@ type Props = NativeStackScreenProps<
 
 const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const {selectedFriends = [], startDate, endDate, numCycles} = route.params;
-
+  const friendsDataRedux =
+    useSelector((state: FriendsState) => state.list) || friendsData;
   const [guardingLists, setGuardingLists] = useState<
     {title: string; data: string[]}[]
   >([]);
@@ -33,6 +37,7 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
         // Calculate minutes per cycle
         const minutesPerCycle = totalMinutes / cycles;
         const minutesPerShift = minutesPerCycle / selectedFriends.length;
+
         for (let i = 0; i < cycles; i++) {
           const currentList = selectedFriends.map((friendId, friendIndex) => {
             // Calculate the start time for each friend
@@ -40,19 +45,21 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
               startDateTime.getTime() +
                 (i * minutesPerCycle + friendIndex * minutesPerShift) * 60000,
             );
+
             const formattedStartTime = startTime.toLocaleTimeString([], {
               // year: 'numeric',
-              // month: 'numeric',
+              month: 'numeric',
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
+              // second: '2-digit',
             });
-            // console.log(formattedStartTime);
 
-            // You can get friend details from your Redux state
-            // For now, just use the friendId as a placeholder
-            return `${formattedStartTime} - ${selectedFriends[friendId - 1]}`;
+            return `${formattedStartTime} - ${
+              friendsDataRedux[friendId - 1].firstName
+            } ${friendsDataRedux[friendId - 1].lastName}`;
           });
+
           resultLists.push({
             title: `Guarding List ${i + 1}`,
             data: currentList,
@@ -68,7 +75,7 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
 
     // Set guarding lists when the component mounts
     setGuardingLists(splitFriendsIntoLists());
-  }, [selectedFriends, startDate, endDate, numCycles]);
+  }, [selectedFriends, startDate, endDate, numCycles, friendsDataRedux]);
 
   const renderGuardingListItem = ({
     item,
