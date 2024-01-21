@@ -18,57 +18,50 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   useEffect(() => {
     // Function to split selectedFriends into guarding lists
     const splitFriendsIntoLists = () => {
+      const cycles = Number(numCycles);
       // Ensure numCycles is defined and is a number
-      if (typeof numCycles === 'number' && numCycles > 0) {
+      if (typeof cycles === 'number' && cycles > 0) {
         // Convert ISO string dates to Date objects
         const startDateTime = new Date(startDate ?? 0);
         const endDateTime = new Date(endDate ?? 0);
 
-        const friendsPerCycle = Math.ceil(selectedFriends.length / numCycles);
-
-        console.log(selectedFriends);
-
         const resultLists: {title: string; data: string[]}[] = [];
-        let currentIndex = 0;
 
         // Calculate total minutes between start and end dates
         const totalMinutes =
           (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
-
-        for (let i = 0; i < numCycles; i++) {
-          // Calculate minutes per cycle
-          const minutesPerCycle = totalMinutes / numCycles;
-
-          // Calculate minutes per friend
-          const minutesPerFriend = minutesPerCycle / friendsPerCycle;
-
-          const currentList = selectedFriends
-            .slice(currentIndex, currentIndex + friendsPerCycle)
-            .map((friendId, friendIndex) => {
-              // Calculate the start time for each friend
-              const startTime = new Date(
-                startDateTime.getTime() +
-                  i * minutesPerCycle +
-                  friendIndex * minutesPerFriend,
-              );
-              const formattedStartTime = startTime.toLocaleTimeString();
-
-              // You can get friend details from your Redux state
-              // For now, just use the friendId as a placeholder
-              return `Friend ${friendId} - ${formattedStartTime}`;
+        // Calculate minutes per cycle
+        const minutesPerCycle = totalMinutes / cycles;
+        const minutesPerShift = minutesPerCycle / selectedFriends.length;
+        for (let i = 0; i < cycles; i++) {
+          const currentList = selectedFriends.map((friendId, friendIndex) => {
+            // Calculate the start time for each friend
+            const startTime = new Date(
+              startDateTime.getTime() +
+                (i * minutesPerCycle + friendIndex * minutesPerShift) * 60000,
+            );
+            const formattedStartTime = startTime.toLocaleTimeString([], {
+              // year: 'numeric',
+              // month: 'numeric',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
             });
+            // console.log(formattedStartTime);
 
-          console.log(currentList);
+            // You can get friend details from your Redux state
+            // For now, just use the friendId as a placeholder
+            return `${formattedStartTime} - ${selectedFriends[friendId - 1]}`;
+          });
           resultLists.push({
             title: `Guarding List ${i + 1}`,
             data: currentList,
           });
-          currentIndex += friendsPerCycle;
         }
 
         return resultLists;
       } else {
-        // Handle the case when numCycles is undefined or not a number
+        // Handle the case when cycles is undefined or not a number
         return [];
       }
     };
