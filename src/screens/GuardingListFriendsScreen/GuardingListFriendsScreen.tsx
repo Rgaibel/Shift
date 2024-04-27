@@ -20,7 +20,7 @@ type Props = NativeStackScreenProps<
 >;
 
 const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
-  const {startDate, endDate, numCycles} = route.params;
+  const {startDate, endDate, numCycles, locationList} = route.params;
   const friendsDataRedux =
     useSelector((state: FriendsState) => state.list) || friendsData;
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
@@ -31,6 +31,7 @@ const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
       startDate,
       endDate,
       numCycles,
+      locationList,
     });
   };
 

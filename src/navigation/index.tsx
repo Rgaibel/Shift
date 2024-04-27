@@ -5,7 +5,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Import your screens
-import Splash from '../screens/Splash';
+// import Splash from '../screens/Splash';
+import SettingsScreen from '../screens/SettingsScreen';
 import Friend from '../screens/Friend';
 import HomeScreen from '../screens/HomeScreen';
 import TimeParameterScreen from '../screens/TimeParameterScreen';
@@ -17,16 +18,19 @@ export type RootStackParamList = {
   Friend: undefined;
   HomeScreen: undefined;
   TimeParameterScreen: undefined;
+  SettingsScreen: undefined;
   GuardingListFriendsScreen: {
     startDate?: string;
     endDate?: string;
     numCycles?: string;
+    locationList?: string[];
   };
   GuardingListEditScreen: {
     selectedFriends?: number[];
     startDate?: string;
     endDate?: string;
     numCycles?: string;
+    locationList?: string[];
   };
 };
 
@@ -79,7 +83,7 @@ function StackFriendsNavigator() {
 function StackSettingsNavigator() {
   return (
     <NativeStack.Navigator screenOptions={{headerShown: false}}>
-      <NativeStack.Screen name="Splash" component={Splash} />
+      <NativeStack.Screen name="SettingsScreen" component={SettingsScreen} />
     </NativeStack.Navigator>
   );
 }

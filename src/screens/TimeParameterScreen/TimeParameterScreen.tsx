@@ -1,6 +1,13 @@
 // TimeParameterScreen.tsx
 import React, {useState} from 'react';
-import {View, Text, StyleSheet, Button, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import CustomDateTimePicker from '../../customComponents/CustomDateTimePicker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
@@ -13,6 +20,7 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
   const [numCycles, setNumCycles] = useState('1');
   const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
   const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
+  const [locationList, setLocationList] = useState<string[]>(['']);
 
   const showStartDatePicker = () => {
     setStartDatePickerVisible(true);
@@ -42,11 +50,21 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
     hideEndDatePicker();
   };
 
+  const handleAddInput = () => {
+    setLocationList([...locationList, '']); // Adds a new input field initialized with an empty string
+  };
+
+  const handleRemoveInput = (index: number) => {
+    const newList = locationList.filter((_, idx) => idx !== index);
+    setLocationList(newList);
+  };
+
   const navigateToGuardingListFriends = () => {
     navigation.navigate('GuardingListFriendsScreen', {
       startDate: startDate.toISOString(), // Convert to a string
       endDate: endDate.toISOString(),
       numCycles,
+      locationList,
     });
   };
 
@@ -66,7 +84,37 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
         onChangeText={text => setNumCycles(text)}
       />
 
-      <Button title="OK" onPress={navigateToGuardingListFriends} />
+      <Text style={styles.label}>Locations:</Text>
+      {locationList.map((input, index) => (
+        <View key={index} style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder={'Location ' + (index + 1).toString()}
+            value={input}
+            onChangeText={text => {
+              const newList = [...locationList];
+              newList[index] = text;
+              setLocationList(newList);
+            }}
+          />
+          {locationList.length > 1 && (
+            <TouchableOpacity
+              onPress={() => handleRemoveInput(index)}
+              style={styles.removeButton}>
+              <Text style={styles.removeButtonText}>X</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+      <Button title="Add a location" onPress={handleAddInput} />
+
+      <View style={{flex: 1, marginTop: 10}}>
+        <Button
+          color="green"
+          title="OK"
+          onPress={navigateToGuardingListFriends}
+        />
+      </View>
 
       <CustomDateTimePicker
         isVisible={isStartDatePickerVisible}
@@ -98,12 +146,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginVertical: 8,
   },
+  inputRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
   input: {
     height: 40,
+    width: '60%',
     borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 8,
+  },
+  removeButton: {
+    backgroundColor: 'red',
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
