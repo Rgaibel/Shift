@@ -171,6 +171,26 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
+  headerRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  row: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  cell: {
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    textAlign: 'left',
+  },
 });
 
 export default TimeParameterScreen;

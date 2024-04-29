@@ -113,3 +113,73 @@ const styles = StyleSheet.create({
 });
 
 export default ScheduleScreen;
+
+//VERTICAL REPRESENTATION BELOW:
+
+// import React, {useState} from 'react';
+// import {View, Text, StyleSheet, ScrollView} from 'react-native';
+// import {generateSchedule} from './scheduleGenerator';
+// import {PLACES, TIMES} from './constants';
+
+// const ScheduleScreen = () => {
+//   const [schedule] = useState(generateSchedule());
+//   console.log(schedule);
+
+//   return (
+//     <View style={styles.container}>
+//       <View style={styles.headerRow}>
+//         <Text style={[styles.cell, {minWidth: 100}]}>Time</Text>
+//         {PLACES.map((place, index) => (
+//           <Text
+//             key={index}
+//             style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
+//             {place}
+//           </Text>
+//         ))}
+//       </View>
+//       <ScrollView style={{flex: 1}}>
+//         {TIMES.map((time, index) => (
+//           <View key={index} style={styles.row}>
+//             <Text style={[styles.cell, {minWidth: 100}]}>{time}</Text>
+//             {schedule[index].map((slot, idx) => (
+//               <Text
+//                 key={idx}
+//                 style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
+//                 {slot.person}
+//               </Text>
+//             ))}
+//           </View>
+//         ))}
+//       </ScrollView>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     paddingTop: 20,
+//   },
+//   headerRow: {
+//     flexDirection: 'row',
+//     paddingHorizontal: 10,
+//     paddingBottom: 10,
+//     borderBottomWidth: 1,
+//     borderBottomColor: '#ddd',
+//   },
+//   row: {
+//     flexDirection: 'row',
+//     paddingHorizontal: 10,
+//     paddingVertical: 10,
+//     borderBottomWidth: 1,
+//     borderBottomColor: '#eee',
+//   },
+//   cell: {
+//     padding: 10,
+//     borderColor: '#ccc',
+//     borderWidth: 1,
+//     textAlign: 'left',
+//   },
+// });
+
+// export default ScheduleScreen;
