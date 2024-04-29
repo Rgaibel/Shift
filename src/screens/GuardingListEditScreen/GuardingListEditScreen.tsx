@@ -35,7 +35,10 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const friendsDataRedux =
     useSelector((state: FriendsState) => state.list) || friendsData;
   const [guardingLists, setGuardingLists] = useState<
-    {title: string; data: {time: string; person: string; place: string}[]}[]
+    {
+      title: string;
+      data: {time: string; person: string; place: string; color: string}[];
+    }[]
   >([]);
 
   useEffect(() => {
@@ -53,17 +56,17 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
       const totalMinutes =
         (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
       const minutesPerCycle = totalMinutes / cycles;
-      const minutesPerShift =
-        (minutesPerCycle / selectedFriends.length) * locationList.length;
 
       for (let i = 0; i < cycles; i++) {
-        const currentList = selectedFriends.map((friendId, friendIndex) => {
+        const currentList = [];
+
+        // Distribute the shifts among the selected friends based on the number of locations
+        for (let j = 0; j < locationList.length; j++) {
+          const friendIndex =
+            (i * locationList.length + j) % selectedFriends.length;
+          const friendId = selectedFriends[friendIndex];
           const startTime = new Date(
-            startDateTime.getTime() +
-              (i * minutesPerCycle +
-                Math.floor(friendIndex / locationList.length) *
-                  minutesPerShift) *
-                60000,
+            startDateTime.getTime() + i * minutesPerCycle * 60000,
           );
 
           const formattedStartTime = startTime.toLocaleTimeString([], {
@@ -73,14 +76,15 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
             minute: '2-digit',
           });
 
-          return {
+          currentList.push({
             time: formattedStartTime,
             person: `${friendsDataRedux[friendId - 1].firstName} ${
               friendsDataRedux[friendId - 1].lastName
             }`,
-            place: locationList[friendIndex % locationList.length],
-          };
-        });
+            place: locationList[j],
+            color: generateUniqueColor(friendId),
+          });
+        }
 
         resultLists.push({
           title: `Guarding List ${i + 1}`,
@@ -100,8 +104,6 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     friendsDataRedux,
     locationList,
   ]);
-
-  // console.log(JSON.stringify(guardingLists));
 
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [personToSwap, setPersonToSwap] = useState<Person | null>(null);
@@ -160,27 +162,76 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     });
   }, [guardingLists]);
 
+  const generateUniqueColor = (friendId: number) => {
+    const baseColors = [
+      '#FF663333',
+      '#FFB39933',
+      '#FF33FF33',
+      '#FFFF9933',
+      '#00B3E633',
+      '#E6B33333',
+      '#3366E633',
+      '#99996633',
+      '#99FF9933',
+      '#B34D4D33',
+      '#80B30033',
+      '#80990033',
+      '#E6B3B333',
+      '#6680B333',
+      '#6699133a',
+      '#FF99E633',
+      '#CCFF133a',
+      '#FF1A6633',
+      '#E633133a',
+      '#33FFCC33',
+      '#66994D33',
+      '#B366CC33',
+      '#4D800033',
+      '#B3330033',
+      '#CC80CC33',
+      '#66664D33',
+      '#991AFF33',
+      '#E666FF33',
+      '#4DB3FF33',
+      '#1AB39933',
+      '#E666B333',
+      '#3399133a',
+      '#CC999933',
+      '#B3B3133a',
+      '#00E68033',
+      '#4D806633',
+      '#80998033',
+      '#E6FF8033',
+      '#1AFF3333',
+      '#99993333',
+      '#FF338033',
+      '#CCCC0033',
+      '#66E64D33',
+      '#4D80CC33',
+      '#9900B333',
+      '#E64D6633',
+      '#4DB38033',
+      '#FF4D4D33',
+      '#99E6E633',
+      '#6666FF33',
+    ];
+
+    return baseColors[friendId % baseColors.length];
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView horizontal>
-        <View style={{flexDirection: 'column'}}>
+        <View style={styles.listContainer}>
           <View style={styles.headerRow}>
-            <Text style={[styles.cell, {minWidth: 120, maxWidth: 120}]}>
-              Time/Place
-            </Text>
-
+            <Text style={[styles.cell, styles.headerCell]}>Time/Place</Text>
             {locationList.map((place, index) => (
-              <Text
-                key={index}
-                style={[
-                  styles.cell,
-                  {flex: 1, textAlign: 'center', minWidth: 120, maxWidth: 120},
-                ]}>
+              <Text key={index} style={[styles.cell, styles.headerCell]}>
                 {place}
               </Text>
             ))}
           </View>
-          <ScrollView style={{flex: 1}}>
+          <ScrollView style={styles.scrollView}>
             {guardingLists.map((list, index) => (
               <GuardingList
                 key={index}
@@ -193,19 +244,22 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
               />
             ))}
           </ScrollView>
-          <Button
-            title="Go Home"
-            onPress={() => navigation.navigate('HomeScreen')}
-          />
         </View>
       </ScrollView>
+      <Button
+        title="Go Home"
+        onPress={() => navigation.navigate('HomeScreen')}
+      />
     </View>
   );
 };
 
 const GuardingList: React.FC<{
   guardingListIndex: number;
-  list: {title: string; data: {time: string; person: string; place: string}[]};
+  list: {
+    title: string;
+    data: {time: string; person: string; place: string; color: string}[];
+  };
   uniqueTimesPerList: {title: string; time: string[]}[];
   handlePersonLongPress: (guardingList: number, place: number) => void;
   selectedPerson: Person | null;
@@ -218,29 +272,26 @@ const GuardingList: React.FC<{
   selectedPerson,
   personToSwap,
 }) => (
-  <View style={[styles.cell, {flex: 1, flexDirection: 'column'}]}>
-    <Text style={styles.title}>{list.title}</Text>
+  <View>
     {uniqueTimesPerList
       .find(obj => list.title === obj.title)
       ?.time.map((time, idx) => (
         <View key={idx} style={styles.row}>
-          <Text style={[styles.cell, {minWidth: 110, maxWidth: 110}]}>
-            {time}
-          </Text>
-          {list.data.map((item, idx) => (
+          <Text style={[styles.cell, styles.timeCell]}>{time}</Text>
+          {list.data.map((item, index) => (
             <GuardingListItem
-              key={idx}
+              key={index}
               guardingListIndex={guardingListIndex}
               item={item}
-              idx={idx}
+              idx={index}
               time={time}
               handlePersonLongPress={handlePersonLongPress}
               isSelected={
-                selectedPerson?.place === idx &&
+                selectedPerson?.place === index &&
                 selectedPerson?.guardingList === guardingListIndex
               }
               isSwappable={
-                personToSwap?.place === idx &&
+                personToSwap?.place === index &&
                 personToSwap?.guardingList === guardingListIndex
               }
             />
@@ -253,7 +304,7 @@ const GuardingList: React.FC<{
 const GuardingListItem: React.FC<{
   key: number;
   guardingListIndex: number;
-  item: {time: string; person: string; place: string};
+  item: {time: string; person: string; place: string; color: string};
   idx: number;
   time: string;
   handlePersonLongPress: (guardingList: number, place: number) => void;
@@ -273,12 +324,13 @@ const GuardingListItem: React.FC<{
       <TouchableOpacity
         style={[
           styles.cell,
+          styles.itemCell,
+          // eslint-disable-next-line react-native/no-inline-styles
           {
-            flex: 1,
             backgroundColor:
               (isSelected || isSwappable) && isSelected !== isSwappable
                 ? 'green'
-                : 'white',
+                : item.color,
           },
         ]}
         onLongPress={() => handlePersonLongPress(guardingListIndex, idx)}>
@@ -292,30 +344,56 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  listContainer: {
+    flexDirection: 'column',
+  },
   headerRow: {
     flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
   row: {
     flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
   cell: {
     padding: 10,
     borderColor: '#ccc',
-    borderWidth: 1,
+    borderWidth: 0,
     textAlign: 'left',
+    minWidth: 120,
+    maxWidth: 120,
+  },
+  headerCell: {
+    flex: 1,
+    textAlign: 'center',
+    minWidth: 120,
+    maxWidth: 120,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  timeCell: {
+    minWidth: 120,
+    maxWidth: 120,
+  },
+  itemCell: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // opacity: 0.5,
+    fontWeight: '300',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  listCell: {
+    flex: 1,
+    flexDirection: 'column',
   },
 });
 
