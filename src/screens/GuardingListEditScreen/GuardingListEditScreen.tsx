@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,11 @@ type Props = NativeStackScreenProps<
   RootStackParamList,
   'GuardingListEditScreen'
 >;
+
+interface Person {
+  guardingList: number;
+  place: number;
+}
 
 const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const {
@@ -96,24 +101,10 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     locationList,
   ]);
 
-  console.log(JSON.stringify(guardingLists));
+  // console.log(JSON.stringify(guardingLists));
 
-  const uniqueTimesPerList = guardingLists.map(list => {
-    const uniqueTimes = Array.from(new Set(list.data.map(item => item.time)));
-    return {
-      title: list.title,
-      time: uniqueTimes,
-    };
-  });
-
-  const [selectedPerson, setSelectedPerson] = useState<{
-    guardingList: number;
-    place: number;
-  } | null>(null);
-  const [personToSwap, setPersonToSwap] = useState<{
-    guardingList: number;
-    place: number;
-  } | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [personToSwap, setPersonToSwap] = useState<Person | null>(null);
 
   const handlePersonLongPress = (guardingList: number, place: number) => {
     if (selectedPerson === null) {
@@ -123,8 +114,9 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
       Alert.alert(
         'Swap Confirmation',
         `Do you want to swap ${
-          guardingLists[selectedPerson.place].data[0].person
-        } with ${guardingLists[place].data[0].person}?`,
+          guardingLists[selectedPerson.guardingList].data[selectedPerson.place]
+            .person
+        } with ${guardingLists[guardingList].data[place].person}?`,
         [
           {text: 'No', onPress: () => setPersonToSwap(null)},
           {
@@ -158,68 +150,142 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     setPersonToSwap(null);
   };
 
+  const uniqueTimesPerList = useMemo(() => {
+    return guardingLists.map(list => {
+      const uniqueTimes = Array.from(new Set(list.data.map(item => item.time)));
+      return {
+        title: list.title,
+        time: uniqueTimes,
+      };
+    });
+  }, [guardingLists]);
+
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={[styles.cell, {minWidth: 120, maxWidth: 120}]}>
-          Time/Place
-        </Text>
-        {locationList.map((place, index) => (
-          <Text
-            key={index}
-            style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
-            {place}
-          </Text>
-        ))}
-      </View>
-      <ScrollView style={{flex: 1}}>
-        {guardingLists.map((list, index) => (
-          <View
-            key={index}
-            style={[styles.cell, {flex: 1, flexDirection: 'column'}]}>
-            <Text style={styles.title}>{list.title}</Text>
-            {uniqueTimesPerList
-              .find(obj => list.title === obj.title)
-              ?.time.map((time, idx) => (
-                <View key={idx} style={styles.row}>
-                  <Text style={[styles.cell, {minWidth: 110, maxWidth: 110}]}>
-                    {time}
-                  </Text>
-                  {list.data.map((item, idx) =>
-                    item.time === time ? (
-                      <TouchableOpacity
-                        key={idx}
-                        style={[
-                          styles.cell,
-                          {
-                            flex: 1,
-                            backgroundColor:
-                              ((selectedPerson?.place === idx &&
-                                selectedPerson?.guardingList === index) ||
-                                (personToSwap?.place === idx &&
-                                  personToSwap?.guardingList === index)) &&
-                              selectedPerson !== personToSwap
-                                ? 'green'
-                                : 'white',
-                          },
-                        ]}
-                        onLongPress={() => handlePersonLongPress(index, idx)}>
-                        <Text>{item.person}</Text>
-                      </TouchableOpacity>
-                    ) : null,
-                  )}
-                </View>
-              ))}
+      <ScrollView horizontal>
+        <View style={{flexDirection: 'column'}}>
+          <View style={styles.headerRow}>
+            <Text style={[styles.cell, {minWidth: 120, maxWidth: 120}]}>
+              Time/Place
+            </Text>
+
+            {locationList.map((place, index) => (
+              <Text
+                key={index}
+                style={[
+                  styles.cell,
+                  {flex: 1, textAlign: 'center', minWidth: 120, maxWidth: 120},
+                ]}>
+                {place}
+              </Text>
+            ))}
           </View>
-        ))}
+          <ScrollView style={{flex: 1}}>
+            {guardingLists.map((list, index) => (
+              <GuardingList
+                key={index}
+                guardingListIndex={index}
+                list={list}
+                uniqueTimesPerList={uniqueTimesPerList}
+                handlePersonLongPress={handlePersonLongPress}
+                selectedPerson={selectedPerson}
+                personToSwap={personToSwap}
+              />
+            ))}
+          </ScrollView>
+          <Button
+            title="Go Home"
+            onPress={() => navigation.navigate('HomeScreen')}
+          />
+        </View>
       </ScrollView>
-      <Button
-        title="Go Home"
-        onPress={() => navigation.navigate('HomeScreen')}
-      />
     </View>
   );
 };
+
+const GuardingList: React.FC<{
+  guardingListIndex: number;
+  list: {title: string; data: {time: string; person: string; place: string}[]};
+  uniqueTimesPerList: {title: string; time: string[]}[];
+  handlePersonLongPress: (guardingList: number, place: number) => void;
+  selectedPerson: Person | null;
+  personToSwap: Person | null;
+}> = ({
+  guardingListIndex,
+  list,
+  uniqueTimesPerList,
+  handlePersonLongPress,
+  selectedPerson,
+  personToSwap,
+}) => (
+  <View style={[styles.cell, {flex: 1, flexDirection: 'column'}]}>
+    <Text style={styles.title}>{list.title}</Text>
+    {uniqueTimesPerList
+      .find(obj => list.title === obj.title)
+      ?.time.map((time, idx) => (
+        <View key={idx} style={styles.row}>
+          <Text style={[styles.cell, {minWidth: 110, maxWidth: 110}]}>
+            {time}
+          </Text>
+          {list.data.map((item, idx) => (
+            <GuardingListItem
+              key={idx}
+              guardingListIndex={guardingListIndex}
+              item={item}
+              idx={idx}
+              time={time}
+              handlePersonLongPress={handlePersonLongPress}
+              isSelected={
+                selectedPerson?.place === idx &&
+                selectedPerson?.guardingList === guardingListIndex
+              }
+              isSwappable={
+                personToSwap?.place === idx &&
+                personToSwap?.guardingList === guardingListIndex
+              }
+            />
+          ))}
+        </View>
+      ))}
+  </View>
+);
+
+const GuardingListItem: React.FC<{
+  key: number;
+  guardingListIndex: number;
+  item: {time: string; person: string; place: string};
+  idx: number;
+  time: string;
+  handlePersonLongPress: (guardingList: number, place: number) => void;
+  isSelected: boolean;
+  isSwappable: boolean;
+}> = React.memo(
+  ({
+    guardingListIndex,
+    item,
+    idx,
+    time,
+    handlePersonLongPress,
+    isSelected,
+    isSwappable,
+  }) =>
+    item.time === time ? (
+      <TouchableOpacity
+        style={[
+          styles.cell,
+          {
+            flex: 1,
+            backgroundColor:
+              (isSelected || isSwappable) && isSelected !== isSwappable
+                ? 'green'
+                : 'white',
+          },
+        ]}
+        onLongPress={() => handlePersonLongPress(guardingListIndex, idx)}>
+        <Text>{item.person}</Text>
+      </TouchableOpacity>
+    ) : null,
+);
 
 const styles = StyleSheet.create({
   container: {
