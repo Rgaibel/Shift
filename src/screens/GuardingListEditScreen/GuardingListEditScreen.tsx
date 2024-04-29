@@ -1,5 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, Button, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Button,
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
 import {FriendsState} from '../../redux/friendsSlice';
@@ -98,6 +106,58 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     };
   });
 
+  const [selectedPerson, setSelectedPerson] = useState<{
+    guardingList: number;
+    place: number;
+  } | null>(null);
+  const [personToSwap, setPersonToSwap] = useState<{
+    guardingList: number;
+    place: number;
+  } | null>(null);
+
+  const handlePersonLongPress = (guardingList: number, place: number) => {
+    if (selectedPerson === null) {
+      setSelectedPerson({guardingList: guardingList, place: place});
+    } else {
+      setPersonToSwap({guardingList: guardingList, place: place});
+      Alert.alert(
+        'Swap Confirmation',
+        `Do you want to swap ${
+          guardingLists[selectedPerson.place].data[0].person
+        } with ${guardingLists[place].data[0].person}?`,
+        [
+          {text: 'No', onPress: () => setPersonToSwap(null)},
+          {
+            text: 'Yes',
+            onPress: () =>
+              swapPersons(
+                selectedPerson.guardingList,
+                selectedPerson.place,
+                guardingList,
+                place,
+              ),
+          },
+        ],
+      );
+    }
+  };
+
+  const swapPersons = (
+    guardingList1: number,
+    index1: number,
+    guardingList2: number,
+    index2: number,
+  ) => {
+    const newGuardingLists = [...guardingLists];
+    const temp = newGuardingLists[guardingList1].data[index1].person;
+    newGuardingLists[guardingList1].data[index1].person =
+      newGuardingLists[guardingList2].data[index2].person;
+    newGuardingLists[guardingList2].data[index2].person = temp;
+    setGuardingLists(newGuardingLists);
+    setSelectedPerson(null);
+    setPersonToSwap(null);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -127,11 +187,25 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
                   </Text>
                   {list.data.map((item, idx) =>
                     item.time === time ? (
-                      <Text
+                      <TouchableOpacity
                         key={idx}
-                        style={[styles.cell, {flex: 1, textAlign: 'center'}]}>
-                        {item.person}
-                      </Text>
+                        style={[
+                          styles.cell,
+                          {
+                            flex: 1,
+                            backgroundColor:
+                              ((selectedPerson?.place === idx &&
+                                selectedPerson?.guardingList === index) ||
+                                (personToSwap?.place === idx &&
+                                  personToSwap?.guardingList === index)) &&
+                              selectedPerson !== personToSwap
+                                ? 'green'
+                                : 'white',
+                          },
+                        ]}
+                        onLongPress={() => handlePersonLongPress(index, idx)}>
+                        <Text>{item.person}</Text>
+                      </TouchableOpacity>
                     ) : null,
                   )}
                 </View>
