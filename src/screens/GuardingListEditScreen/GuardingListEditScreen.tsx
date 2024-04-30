@@ -143,10 +143,15 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     index2: number,
   ) => {
     const newGuardingLists = [...guardingLists];
-    const temp = newGuardingLists[guardingList1].data[index1].person;
+    const tempColor = newGuardingLists[guardingList1].data[index1].color;
+    newGuardingLists[guardingList1].data[index1].color =
+      newGuardingLists[guardingList2].data[index2].color;
+    newGuardingLists[guardingList2].data[index2].color = tempColor;
+
+    const tempPerson = newGuardingLists[guardingList1].data[index1].person;
     newGuardingLists[guardingList1].data[index1].person =
       newGuardingLists[guardingList2].data[index2].person;
-    newGuardingLists[guardingList2].data[index2].person = temp;
+    newGuardingLists[guardingList2].data[index2].person = tempPerson;
     setGuardingLists(newGuardingLists);
     setSelectedPerson(null);
     setPersonToSwap(null);
@@ -385,7 +390,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    // opacity: 0.5,
+    borderRadius: 55,
     fontWeight: '300',
   },
   scrollView: {
