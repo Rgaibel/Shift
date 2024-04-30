@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -35,10 +35,7 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const friendsDataRedux =
     useSelector((state: FriendsState) => state.list) || friendsData;
   const [guardingLists, setGuardingLists] = useState<
-    {
-      title: string;
-      data: {time: string; person: string; place: string; color: string}[];
-    }[]
+    {time: string; person: string; place: string; color: string}[][]
   >([]);
 
   useEffect(() => {
@@ -57,9 +54,10 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
         (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
       const minutesPerCycle = totalMinutes / cycles;
 
-      for (let i = 0; i < cycles; i++) {
-        const currentList = [];
+      let currentList = [];
+      let lastFormattedTime = null;
 
+      for (let i = 0; i < cycles; i++) {
         // Distribute the shifts among the selected friends based on the number of locations
         for (let j = 0; j < locationList.length; j++) {
           const friendIndex =
@@ -69,15 +67,23 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
             startDateTime.getTime() + i * minutesPerCycle * 60000,
           );
 
-          const formattedStartTime = startTime.toLocaleTimeString([], {
+          const formattedTime = startTime.toLocaleTimeString([], {
             month: 'numeric',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
           });
 
+          if (formattedTime !== lastFormattedTime) {
+            if (currentList.length > 0) {
+              resultLists.push(currentList);
+              currentList = [];
+            }
+            lastFormattedTime = formattedTime;
+          }
+
           currentList.push({
-            time: formattedStartTime,
+            time: formattedTime,
             person: `${friendsDataRedux[friendId - 1].firstName} ${
               friendsDataRedux[friendId - 1].lastName
             }`,
@@ -85,11 +91,10 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
             color: generateUniqueColor(friendId),
           });
         }
+      }
 
-        resultLists.push({
-          title: `Guarding List ${i + 1}`,
-          data: currentList,
-        });
+      if (currentList.length > 0) {
+        resultLists.push(currentList);
       }
 
       return resultLists;
@@ -104,7 +109,6 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     friendsDataRedux,
     locationList,
   ]);
-
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [personToSwap, setPersonToSwap] = useState<Person | null>(null);
 
@@ -116,9 +120,9 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
       Alert.alert(
         'Swap Confirmation',
         `Do you want to swap ${
-          guardingLists[selectedPerson.guardingList].data[selectedPerson.place]
+          guardingLists[selectedPerson.guardingList][selectedPerson.place]
             .person
-        } with ${guardingLists[guardingList].data[place].person}?`,
+        } with ${guardingLists[guardingList][place].person}?`,
         [
           {text: 'No', onPress: () => setPersonToSwap(null)},
           {
@@ -143,29 +147,19 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     index2: number,
   ) => {
     const newGuardingLists = [...guardingLists];
-    const tempColor = newGuardingLists[guardingList1].data[index1].color;
-    newGuardingLists[guardingList1].data[index1].color =
-      newGuardingLists[guardingList2].data[index2].color;
-    newGuardingLists[guardingList2].data[index2].color = tempColor;
+    const tempColor = newGuardingLists[guardingList1][index1].color;
+    newGuardingLists[guardingList1][index1].color =
+      newGuardingLists[guardingList2][index2].color;
+    newGuardingLists[guardingList2][index2].color = tempColor;
 
-    const tempPerson = newGuardingLists[guardingList1].data[index1].person;
-    newGuardingLists[guardingList1].data[index1].person =
-      newGuardingLists[guardingList2].data[index2].person;
-    newGuardingLists[guardingList2].data[index2].person = tempPerson;
+    const tempPerson = newGuardingLists[guardingList1][index1].person;
+    newGuardingLists[guardingList1][index1].person =
+      newGuardingLists[guardingList2][index2].person;
+    newGuardingLists[guardingList2][index2].person = tempPerson;
     setGuardingLists(newGuardingLists);
     setSelectedPerson(null);
     setPersonToSwap(null);
   };
-
-  const uniqueTimesPerList = useMemo(() => {
-    return guardingLists.map(list => {
-      const uniqueTimes = Array.from(new Set(list.data.map(item => item.time)));
-      return {
-        title: list.title,
-        time: uniqueTimes,
-      };
-    });
-  }, [guardingLists]);
 
   const generateUniqueColor = (friendId: number) => {
     const baseColors = [
@@ -240,9 +234,8 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
             {guardingLists.map((list, index) => (
               <GuardingList
                 key={index}
-                guardingListIndex={index}
+                timeIndex={index}
                 list={list}
-                uniqueTimesPerList={uniqueTimesPerList}
                 handlePersonLongPress={handlePersonLongPress}
                 selectedPerson={selectedPerson}
                 personToSwap={personToSwap}
@@ -252,63 +245,55 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
         </View>
       </ScrollView>
       <Button
-        title="Go Home"
-        onPress={() => navigation.navigate('HomeScreen')}
+        title="Save"
+        onPress={() =>
+          //store the guardingLists data in an sqlite watermelon DB here
+          navigation.navigate('HomeScreen')
+        }
       />
     </View>
   );
 };
 
 const GuardingList: React.FC<{
-  guardingListIndex: number;
-  list: {
-    title: string;
-    data: {time: string; person: string; place: string; color: string}[];
-  };
-  uniqueTimesPerList: {title: string; time: string[]}[];
+  timeIndex: number;
+  list: {time: string; person: string; place: string; color: string}[];
   handlePersonLongPress: (guardingList: number, place: number) => void;
   selectedPerson: Person | null;
   personToSwap: Person | null;
 }> = ({
-  guardingListIndex,
+  timeIndex,
   list,
-  uniqueTimesPerList,
   handlePersonLongPress,
   selectedPerson,
   personToSwap,
 }) => (
-  <View>
-    {uniqueTimesPerList
-      .find(obj => list.title === obj.title)
-      ?.time.map((time, idx) => (
-        <View key={idx} style={styles.row}>
-          <Text style={[styles.cell, styles.timeCell]}>{time}</Text>
-          {list.data.map((item, index) => (
-            <GuardingListItem
-              key={index}
-              guardingListIndex={guardingListIndex}
-              item={item}
-              idx={index}
-              time={time}
-              handlePersonLongPress={handlePersonLongPress}
-              isSelected={
-                selectedPerson?.place === index &&
-                selectedPerson?.guardingList === guardingListIndex
-              }
-              isSwappable={
-                personToSwap?.place === index &&
-                personToSwap?.guardingList === guardingListIndex
-              }
-            />
-          ))}
-        </View>
-      ))}
+  <View style={styles.row}>
+    <Text style={[styles.cell, styles.timeCell]}>{list[0].time}</Text>
+    {list.map((item, index) => (
+      <GuardingListItem
+        key={index}
+        timeIndex={timeIndex}
+        item={item}
+        idx={index}
+        time={list[0].time}
+        handlePersonLongPress={handlePersonLongPress}
+        isSelected={
+          selectedPerson?.place === index &&
+          selectedPerson?.guardingList === timeIndex
+        }
+        isSwappable={
+          personToSwap?.place === index &&
+          personToSwap?.guardingList === timeIndex
+        }
+      />
+    ))}
   </View>
 );
 
 const GuardingListItem: React.FC<{
   key: number;
-  guardingListIndex: number;
+  timeIndex: number;
   item: {time: string; person: string; place: string; color: string};
   idx: number;
   time: string;
@@ -317,7 +302,7 @@ const GuardingListItem: React.FC<{
   isSwappable: boolean;
 }> = React.memo(
   ({
-    guardingListIndex,
+    timeIndex,
     item,
     idx,
     time,
@@ -338,7 +323,7 @@ const GuardingListItem: React.FC<{
                 : item.color,
           },
         ]}
-        onLongPress={() => handlePersonLongPress(guardingListIndex, idx)}>
+        onLongPress={() => handlePersonLongPress(timeIndex, idx)}>
         <Text>{item.person}</Text>
       </TouchableOpacity>
     ) : null,
@@ -390,7 +375,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 55,
+    borderRadius: 20,
     fontWeight: '300',
   },
   scrollView: {
