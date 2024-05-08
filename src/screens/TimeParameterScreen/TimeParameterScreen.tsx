@@ -7,6 +7,7 @@ import {
   Button,
   TextInput,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import CustomDateTimePicker from '../../customComponents/CustomDateTimePicker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -70,52 +71,55 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Start Date: {startDate.toLocaleString()}</Text>
-      <Button title="Pick Start Date" onPress={showStartDatePicker} />
+      <ScrollView>
+        <Text style={styles.label}>
+          Start Date: {startDate.toLocaleString()}
+        </Text>
+        <Button title="Pick Start Date" onPress={showStartDatePicker} />
 
-      <Text style={styles.label}>End Date: {endDate.toLocaleString()}</Text>
-      <Button title="Pick End Date" onPress={showEndDatePicker} />
+        <Text style={styles.label}>End Date: {endDate.toLocaleString()}</Text>
+        <Button title="Pick End Date" onPress={showEndDatePicker} />
 
-      <Text style={styles.label}>Number of Cycles:</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={numCycles}
-        onChangeText={text => setNumCycles(text)}
-      />
-
-      <Text style={styles.label}>Locations:</Text>
-      {locationList.map((input, index) => (
-        <View key={index} style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            placeholder={'Location ' + (index + 1).toString()}
-            value={input}
-            onChangeText={text => {
-              const newList = [...locationList];
-              newList[index] = text;
-              setLocationList(newList);
-            }}
-          />
-          {locationList.length > 1 && (
-            <TouchableOpacity
-              onPress={() => handleRemoveInput(index)}
-              style={styles.removeButton}>
-              <Text style={styles.removeButtonText}>X</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ))}
-      <Button title="Add a location" onPress={handleAddInput} />
-
-      <View style={{flex: 1, marginTop: 10}}>
-        <Button
-          color="green"
-          title="OK"
-          onPress={navigateToGuardingListFriends}
+        <Text style={styles.label}>Number of Cycles:</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          value={numCycles}
+          onChangeText={text => setNumCycles(text)}
         />
-      </View>
 
+        <Text style={styles.label}>Locations:</Text>
+        {locationList.map((input, index) => (
+          <View key={index} style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              placeholder={'Location ' + (index + 1).toString()}
+              value={input}
+              onChangeText={text => {
+                const newList = [...locationList];
+                newList[index] = text;
+                setLocationList(newList);
+              }}
+            />
+            {locationList.length > 1 && (
+              <TouchableOpacity
+                onPress={() => handleRemoveInput(index)}
+                style={styles.removeButton}>
+                <Text style={styles.removeButtonText}>X</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ))}
+        <Button title="Add a location" onPress={handleAddInput} />
+
+        <View style={{flex: 1, marginTop: 10}}>
+          <Button
+            color="green"
+            title="OK"
+            onPress={navigateToGuardingListFriends}
+          />
+        </View>
+      </ScrollView>
       <CustomDateTimePicker
         isVisible={isStartDatePickerVisible}
         value={startDate}

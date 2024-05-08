@@ -4,8 +4,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Import your screens
-// import Splash from '../screens/Splash';
 import SettingsScreen from '../screens/SettingsScreen';
 import Friend from '../screens/Friend';
 import HomeScreen from '../screens/HomeScreen';

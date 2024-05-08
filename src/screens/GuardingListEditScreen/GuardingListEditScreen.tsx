@@ -20,7 +20,7 @@ type Props = NativeStackScreenProps<
 >;
 
 interface Person {
-  guardingList: number;
+  timeIndex: number;
   place: number;
 }
 
@@ -112,26 +112,25 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [personToSwap, setPersonToSwap] = useState<Person | null>(null);
 
-  const handlePersonLongPress = (guardingList: number, place: number) => {
+  const handlePersonLongPress = (timeIndex: number, place: number) => {
     if (selectedPerson === null) {
-      setSelectedPerson({guardingList: guardingList, place: place});
+      setSelectedPerson({timeIndex: timeIndex, place: place});
     } else {
-      setPersonToSwap({guardingList: guardingList, place: place});
+      setPersonToSwap({timeIndex: timeIndex, place: place});
       Alert.alert(
         'Swap Confirmation',
         `Do you want to swap ${
-          guardingLists[selectedPerson.guardingList][selectedPerson.place]
-            .person
-        } with ${guardingLists[guardingList][place].person}?`,
+          guardingLists[selectedPerson.timeIndex][selectedPerson.place].person
+        } with ${guardingLists[timeIndex][place].person}?`,
         [
           {text: 'No', onPress: () => setPersonToSwap(null)},
           {
             text: 'Yes',
             onPress: () =>
               swapPersons(
-                selectedPerson.guardingList,
+                selectedPerson.timeIndex,
                 selectedPerson.place,
-                guardingList,
+                timeIndex,
                 place,
               ),
           },
@@ -280,11 +279,10 @@ const GuardingList: React.FC<{
         handlePersonLongPress={handlePersonLongPress}
         isSelected={
           selectedPerson?.place === index &&
-          selectedPerson?.guardingList === timeIndex
+          selectedPerson?.timeIndex === timeIndex
         }
         isSwappable={
-          personToSwap?.place === index &&
-          personToSwap?.guardingList === timeIndex
+          personToSwap?.place === index && personToSwap?.timeIndex === timeIndex
         }
       />
     ))}
