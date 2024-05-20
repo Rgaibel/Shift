@@ -12,7 +12,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
 import {FriendsState} from '../../redux/friendsSlice';
 import friendsData from '../../data/friendsData'; // Import hardcoded friends data
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 type Props = NativeStackScreenProps<
   RootStackParamList,
@@ -37,6 +37,12 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
   const [guardingLists, setGuardingLists] = useState<
     {time: string; person: string; place: string; color: string}[][]
   >([]);
+
+  const dispatch = useDispatch();
+
+  const setData = (newData: any) => {
+    dispatch({type: 'SET_DATA', payload: newData});
+  };
 
   useEffect(() => {
     const splitFriendsIntoLists = () => {
@@ -109,6 +115,8 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     friendsDataRedux,
     locationList,
   ]);
+
+  // console.log(guardingLists);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [personToSwap, setPersonToSwap] = useState<Person | null>(null);
 
@@ -245,10 +253,11 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
       </ScrollView>
       <Button
         title="Save"
-        onPress={() =>
+        onPress={() => {
+          setData(guardingLists);
           //store the guardingLists data in an sqlite watermelon DB here
-          navigation.navigate('HomeScreen')
-        }
+          navigation.navigate('HomeScreen');
+        }}
       />
     </View>
   );
