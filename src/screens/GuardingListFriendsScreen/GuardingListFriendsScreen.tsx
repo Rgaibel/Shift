@@ -10,8 +10,6 @@ import {
 import {CheckBox} from 'react-native-elements';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
-import {useSelector} from 'react-redux';
-import {FriendsState} from '../../redux/friendsSlice';
 import friendsData from '../../data/friendsData'; // Import hardcoded friends data
 
 type Props = NativeStackScreenProps<
@@ -20,18 +18,14 @@ type Props = NativeStackScreenProps<
 >;
 
 const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
-  const {startDate, endDate, numCycles, locationList} = route.params;
-  const friendsDataRedux =
-    useSelector((state: FriendsState) => state.list) || friendsData;
+  const {...params} = route.params;
+  const friendsDataRedux = friendsData;
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
 
   const createGuardingList = () => {
     navigation.navigate('GuardingListEditScreen', {
       selectedFriends,
-      startDate,
-      endDate,
-      numCycles,
-      locationList,
+      ...params,
     });
   };
 
@@ -65,13 +59,6 @@ const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        Start Date: {startDate ? new Date(startDate).toLocaleString() : 'N/A'}
-      </Text>
-      <Text style={styles.label}>
-        End Date: {endDate ? new Date(endDate).toLocaleString() : 'N/A'}
-      </Text>
-
       <FlatList
         data={friendsDataRedux}
         keyExtractor={item => item.id.toString()}
