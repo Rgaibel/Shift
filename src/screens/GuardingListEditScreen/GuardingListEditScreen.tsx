@@ -99,25 +99,8 @@ const styles = StyleSheet.create({
     minWidth: 120,
     maxWidth: 120,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  itemCell: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    fontWeight: '300',
-  },
   scrollView: {
     flex: 1,
-  },
-  listCell: {
-    flex: 1,
-    flexDirection: 'column',
   },
 });
 

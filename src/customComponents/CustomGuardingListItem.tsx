@@ -41,18 +41,6 @@ export const CustomGuardingListItem: React.FC<{
 );
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  listContainer: {
-    flexDirection: 'column',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
   cell: {
     padding: 10,
     borderColor: '#ccc',
@@ -61,17 +49,6 @@ const styles = StyleSheet.create({
     minWidth: 120,
     maxWidth: 120,
   },
-  headerCell: {
-    flex: 1,
-    textAlign: 'center',
-    minWidth: 120,
-    maxWidth: 120,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
   itemCell: {
     flex: 1,
     flexDirection: 'row',
@@ -79,12 +56,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
     fontWeight: '300',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  listCell: {
-    flex: 1,
-    flexDirection: 'column',
   },
 });
