@@ -76,6 +76,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#231F20',
   },
   listContainer: {
     flexDirection: 'column',
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#555',
   },
   cell: {
     padding: 10,
@@ -92,12 +93,15 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     minWidth: 120,
     maxWidth: 120,
+    color: '#FFFFFF',
   },
   headerCell: {
     flex: 1,
     textAlign: 'center',
     minWidth: 120,
     maxWidth: 120,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,

@@ -41,46 +41,72 @@ export const useGuardingList = ({
         (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
       const minutesPerCycle = totalMinutes / cycles;
 
-      let currentList = [];
-      let lastFormattedTime = null;
+      // Calculate how many time slots we need per cycle
+      // When there are multiple locations, we need fewer slots because each slot covers all locations
+      // Each person guards once total
+      // Number of slots = number of people / number of locations (rounded up)
+      const peoplePerLocation = Math.ceil(
+        selectedFriends.length / locationList.length,
+      );
+      const slotsPerCycle = peoplePerLocation;
+      
+      // When there are multiple locations, each person guards longer
+      // Each person guards: cycle time / slots per location
+      const minutesPerSlot = minutesPerCycle / slotsPerCycle;
 
-      for (let i = 0; i < cycles; i++) {
-        for (let j = 0; j < locationList.length; j++) {
-          const friendIndex =
-            (i * locationList.length + j) % selectedFriends.length;
-          const friendId = selectedFriends[friendIndex];
-          const startTime = new Date(
-            startDateTime.getTime() + i * minutesPerCycle * 60000,
+      for (let cycleIndex = 0; cycleIndex < cycles; cycleIndex++) {
+        for (let slotIndex = 0; slotIndex < slotsPerCycle; slotIndex++) {
+          // Calculate the start time for this slot
+          const slotStartTime = new Date(
+            startDateTime.getTime() +
+              (cycleIndex * minutesPerCycle + slotIndex * minutesPerSlot) *
+                60000,
           );
 
-          const formattedTime = startTime.toLocaleTimeString([], {
+          const formattedTime = slotStartTime.toLocaleTimeString([], {
             month: 'numeric',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
           });
 
-          if (formattedTime !== lastFormattedTime) {
-            if (currentList.length > 0) {
-              resultLists.push(currentList);
-              currentList = [];
+          // Create a list entry for all locations at this time slot
+          // Each location gets one person assigned
+          const currentList = locationList.map((location, locationIndex) => {
+            // Calculate which person guards this location at this time slot
+            // People are distributed: first N go to location 0, next N to location 1, etc.
+            // At each time slot, assign one person per location
+            // Formula: personIndex = slotIndex * numLocations + locationIndex
+            const personIndexForSlot =
+              slotIndex * locationList.length + locationIndex;
+            
+            // Only assign if we have a person for this slot and location
+            if (personIndexForSlot < selectedFriends.length) {
+              const friendIndex =
+                (cycleIndex * selectedFriends.length + personIndexForSlot) %
+                selectedFriends.length;
+              const friendId = selectedFriends[friendIndex];
+              return {
+                time: formattedTime,
+                person: `${friendsData[friendId - 1].firstName} ${
+                  friendsData[friendId - 1].lastName
+                }`,
+                place: location,
+                color: generateUniqueColor(friendId),
+              };
+            } else {
+              // No more people to assign
+              return {
+                time: formattedTime,
+                person: '',
+                place: location,
+                color: '#CCCCCC',
+              };
             }
-            lastFormattedTime = formattedTime;
-          }
-
-          currentList.push({
-            time: formattedTime,
-            person: `${friendsData[friendId - 1].firstName} ${
-              friendsData[friendId - 1].lastName
-            }`,
-            place: locationList[j],
-            color: generateUniqueColor(friendId),
           });
-        }
-      }
 
-      if (currentList.length > 0) {
-        resultLists.push(currentList);
+          resultLists.push(currentList);
+        }
       }
 
       return resultLists;

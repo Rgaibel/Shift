@@ -4,6 +4,9 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+// Type assertion to fix React 18 compatibility issue
+const Icon = MaterialCommunityIcons as any;
+
 import SettingsScreen from '../screens/SettingsScreen';
 import Friend from '../screens/Friend';
 import HomeScreen from '../screens/HomeScreen';
@@ -37,18 +40,18 @@ const Tab = createBottomTabNavigator();
 
 // Define icon components outside the TabNavigator
 const HomeIcon: React.FC<{color: string; size: number}> = ({color, size}) => (
-  <MaterialCommunityIcons name="home" color={color} size={size} />
+  <Icon name="home" color={color} size={size} />
 );
 
 const FriendsIcon: React.FC<{color: string; size: number}> = ({
   color,
   size,
-}) => <MaterialCommunityIcons name="account-group" color={color} size={size} />;
+}) => <Icon name="account-group" color={color} size={size} />;
 
 const SettingsIcon: React.FC<{color: string; size: number}> = ({
   color,
   size,
-}) => <MaterialCommunityIcons name="cog" color={color} size={size} />;
+}) => <Icon name="cog" color={color} size={size} />;
 
 function StackHomeNavigator() {
   return (

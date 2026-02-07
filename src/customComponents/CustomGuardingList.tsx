@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#555',
   },
   cell: {
     padding: 10,
@@ -51,9 +51,11 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     minWidth: 120,
     maxWidth: 120,
+    color: '#FFFFFF',
   },
   timeCell: {
     minWidth: 120,
     maxWidth: 120,
+    color: '#FFFFFF',
   },
 });
