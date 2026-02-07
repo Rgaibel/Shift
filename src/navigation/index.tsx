@@ -24,6 +24,8 @@ export type RootStackParamList = {
     startDate?: string;
     endDate?: string;
     numCycles?: string;
+    scheduleMode?: 'cycles' | 'maxGuardTime';
+    maxGuardTimeHours?: string;
     locationList?: string[];
   };
   GuardingListEditScreen: {
@@ -31,6 +33,8 @@ export type RootStackParamList = {
     startDate?: string;
     endDate?: string;
     numCycles?: string;
+    scheduleMode?: 'cycles' | 'maxGuardTime';
+    maxGuardTimeHours?: string;
     locationList?: string[];
   };
 };

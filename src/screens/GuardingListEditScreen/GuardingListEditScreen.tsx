@@ -17,6 +17,8 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
     startDate,
     endDate,
     numCycles = '',
+    scheduleMode,
+    maxGuardTimeHours,
     locationList = [],
   } = route.params;
 
@@ -26,6 +28,8 @@ const GuardingListEditScreen: React.FC<Props> = ({route, navigation}) => {
       startDate,
       endDate,
       numCycles,
+      scheduleMode,
+      maxGuardTimeHours,
       locationList,
     });
 

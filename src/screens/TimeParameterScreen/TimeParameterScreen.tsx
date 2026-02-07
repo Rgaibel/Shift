@@ -18,7 +18,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TimeParameterScreen'>;
 const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [scheduleMode, setScheduleMode] = useState<'cycles' | 'maxGuardTime'>(
+    'cycles',
+  );
   const [numCycles, setNumCycles] = useState('1');
+  const [maxGuardTimeHours, setMaxGuardTimeHours] = useState('2');
   const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
   const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
   const [locationList, setLocationList] = useState<string[]>(['']);
@@ -64,7 +68,10 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
     navigation.navigate('GuardingListFriendsScreen', {
       startDate: startDate.toISOString(), // Convert to a string
       endDate: endDate.toISOString(),
-      numCycles,
+      scheduleMode,
+      numCycles: scheduleMode === 'cycles' ? numCycles : undefined,
+      maxGuardTimeHours:
+        scheduleMode === 'maxGuardTime' ? maxGuardTimeHours : undefined,
       locationList,
     });
   };
@@ -80,13 +87,52 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
         <Text style={styles.label}>End Date: {endDate.toLocaleString()}</Text>
         <Button title="Pick End Date" onPress={showEndDatePicker} />
 
-        <Text style={styles.label}>Number of Cycles:</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={numCycles}
-          onChangeText={text => setNumCycles(text)}
-        />
+        <Text style={styles.label}>Schedule Mode:</Text>
+        <View style={styles.radioContainer}>
+          <TouchableOpacity
+            style={styles.radioOption}
+            onPress={() => setScheduleMode('cycles')}>
+            <View style={styles.radioButton}>
+              {scheduleMode === 'cycles' && (
+                <View style={styles.radioButtonInner} />
+              )}
+            </View>
+            <Text style={styles.radioLabel}>Number of Cycles</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.radioOption}
+            onPress={() => setScheduleMode('maxGuardTime')}>
+            <View style={styles.radioButton}>
+              {scheduleMode === 'maxGuardTime' && (
+                <View style={styles.radioButtonInner} />
+              )}
+            </View>
+            <Text style={styles.radioLabel}>Max Guard Time per Person</Text>
+          </TouchableOpacity>
+        </View>
+
+        {scheduleMode === 'cycles' ? (
+          <>
+            <Text style={styles.label}>Number of Cycles:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={numCycles}
+              onChangeText={text => setNumCycles(text)}
+            />
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Max Guard Time per Person (hours):</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="decimal-pad"
+              value={maxGuardTimeHours}
+              onChangeText={text => setMaxGuardTimeHours(text)}
+              placeholder="2.0"
+            />
+          </>
+        )}
 
         <Text style={styles.label}>Locations:</Text>
         {locationList.map((input, index) => (
@@ -202,6 +248,34 @@ const styles = StyleSheet.create({
   okButtonContainer: {
     flex: 1,
     marginTop: 10,
+  },
+  radioContainer: {
+    marginVertical: 10,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  radioButton: {
+    height: 24,
+    width: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  radioLabel: {
+    fontSize: 16,
+    color: '#FFFFFF',
   },
 });
 
