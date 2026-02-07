@@ -21,7 +21,6 @@ export const CustomGuardingListItem: React.FC<{
     isSwappable,
   }) =>
     item.time === time ? (
-      // eslint-disable-next-line react/react-in-jsx-scope
       <TouchableOpacity
         style={[
           styles.cell,

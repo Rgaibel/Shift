@@ -112,7 +112,7 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
         ))}
         <Button title="Add a location" onPress={handleAddInput} />
 
-        <View style={{flex: 1, marginTop: 10}}>
+        <View style={styles.okButtonContainer}>
           <Button
             color="green"
             title="OK"
@@ -145,10 +145,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#231F20',
   },
   label: {
     fontSize: 18,
     marginVertical: 8,
+    color: '#FFFFFF',
   },
   inputRow: {
     flexDirection: 'row',
@@ -161,6 +163,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    color: '#000000',
   },
   removeButton: {
     backgroundColor: 'red',
@@ -194,6 +198,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     textAlign: 'left',
+  },
+  okButtonContainer: {
+    flex: 1,
+    marginTop: 10,
   },
 });
 

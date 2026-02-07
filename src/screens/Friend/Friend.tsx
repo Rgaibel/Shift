@@ -14,8 +14,8 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
 import {useDispatch, useSelector} from 'react-redux';
-import {addFriend, editFriend} from '../../redux/friendsSlice'; // Adjust the path
-import {FriendsState} from '../../redux/friendsSlice';
+import {addFriend, editFriend} from '../../redux/friendsSlice';
+import {AppState} from '../../store/reducers';
 import friendsData from '../../data/friendsData'; // Import hardcoded friends data
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Friend'>;
@@ -29,7 +29,7 @@ interface FriendData {
 const Friend: React.FC<Props> = () => {
   const dispatch = useDispatch();
   const friendsDataRedux =
-    useSelector((state: FriendsState) => state.list) || friendsData;
+    useSelector((state: AppState) => state.friends?.list) || friendsData;
   const [isModalVisible, setModalVisible] = useState(false);
   const [editedFriend, setEditedFriend] = useState<FriendData>({
     id: 0,

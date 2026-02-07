@@ -26,7 +26,7 @@ const ScheduleScreen = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{flexGrow: 1}}>
+        contentContainerStyle={styles.scrollContent}>
         <View>
           <View style={styles.row}>
             {TIMES.map(time => (
@@ -109,6 +109,9 @@ const styles = StyleSheet.create({
     minWidth: 120, // Consistent with other cells
     textAlign: 'left', // Align text to the left
     backgroundColor: '#FFFFFF', // Keeping the cell background consistent
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
 });
 
