@@ -24,8 +24,9 @@ export type RootStackParamList = {
     startDate?: string;
     endDate?: string;
     numCycles?: string;
-    scheduleMode?: 'cycles' | 'maxGuardTime';
+    scheduleMode?: 'cycles' | 'maxGuardTime' | 'maxGuardTimeMinutes';
     maxGuardTimeHours?: string;
+    maxGuardTimeMinutes?: string;
     locationList?: string[];
   };
   GuardingListEditScreen: {
@@ -33,8 +34,9 @@ export type RootStackParamList = {
     startDate?: string;
     endDate?: string;
     numCycles?: string;
-    scheduleMode?: 'cycles' | 'maxGuardTime';
+    scheduleMode?: 'cycles' | 'maxGuardTime' | 'maxGuardTimeMinutes';
     maxGuardTimeHours?: string;
+    maxGuardTimeMinutes?: string;
     locationList?: string[];
   };
 };
@@ -119,6 +121,20 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#1E2330',
+          borderTopColor: '#2A2D3A',
+          borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: '#00D4AA',
+        tabBarInactiveTintColor: '#8A8D99',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}>
       <Tab.Screen
         name="Home"

@@ -2,6 +2,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import {PersonIndex} from '../types/guardingList';
 import React from 'react';
 import {CustomGuardingListItem} from './CustomGuardingListItem';
+import {colors, spacing, typography} from '../theme/colors';
 
 export const CustomGuardingList: React.FC<{
   timeIndex: number;
@@ -42,20 +43,23 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#555',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   cell: {
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 0,
+    padding: spacing.md,
     textAlign: 'left',
-    minWidth: 120,
-    maxWidth: 120,
-    color: '#FFFFFF',
+    minWidth: 140,
+    maxWidth: 140,
+    color: colors.text,
   },
   timeCell: {
-    minWidth: 120,
-    maxWidth: 120,
-    color: '#FFFFFF',
+    ...typography.body,
+    minWidth: 140,
+    maxWidth: 140,
+    color: colors.textSecondary,
+    borderRightWidth: 1,
+    borderRightColor: colors.border,
+    backgroundColor: colors.surfaceElevated,
   },
 });

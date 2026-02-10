@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Button,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -12,17 +11,19 @@ import {
 import CustomDateTimePicker from '../../customComponents/CustomDateTimePicker';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
+import {colors, spacing, borderRadius, typography} from '../../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TimeParameterScreen'>;
 
 const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [scheduleMode, setScheduleMode] = useState<'cycles' | 'maxGuardTime'>(
-    'cycles',
-  );
+  const [scheduleMode, setScheduleMode] = useState<
+    'cycles' | 'maxGuardTime' | 'maxGuardTimeMinutes'
+  >('cycles');
   const [numCycles, setNumCycles] = useState('1');
   const [maxGuardTimeHours, setMaxGuardTimeHours] = useState('2');
+  const [maxGuardTimeMinutes, setMaxGuardTimeMinutes] = useState('120');
   const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
   const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
   const [locationList, setLocationList] = useState<string[]>(['']);
@@ -36,7 +37,6 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handleStartDateChange = (date: Date) => {
-    // Automatically update both start and end dates
     setStartDate(date);
     setEndDate(date);
     hideStartDatePicker();
@@ -56,7 +56,7 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
   };
 
   const handleAddInput = () => {
-    setLocationList([...locationList, '']); // Adds a new input field initialized with an empty string
+    setLocationList([...locationList, '']);
   };
 
   const handleRemoveInput = (index: number) => {
@@ -66,111 +66,199 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
 
   const navigateToGuardingListFriends = () => {
     navigation.navigate('GuardingListFriendsScreen', {
-      startDate: startDate.toISOString(), // Convert to a string
+      startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       scheduleMode,
       numCycles: scheduleMode === 'cycles' ? numCycles : undefined,
       maxGuardTimeHours:
         scheduleMode === 'maxGuardTime' ? maxGuardTimeHours : undefined,
+      maxGuardTimeMinutes:
+        scheduleMode === 'maxGuardTimeMinutes'
+          ? maxGuardTimeMinutes
+          : undefined,
       locationList,
     });
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <Text style={styles.label}>
-          Start Date: {startDate.toLocaleString()}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.screenTitle}>Schedule Configuration</Text>
+        <Text style={styles.screenSubtitle}>
+          Set up your guard duty schedule parameters
         </Text>
-        <Button title="Pick Start Date" onPress={showStartDatePicker} />
 
-        <Text style={styles.label}>End Date: {endDate.toLocaleString()}</Text>
-        <Button title="Pick End Date" onPress={showEndDatePicker} />
-
-        <Text style={styles.label}>Schedule Mode:</Text>
-        <View style={styles.radioContainer}>
-          <TouchableOpacity
-            style={styles.radioOption}
-            onPress={() => setScheduleMode('cycles')}>
-            <View style={styles.radioButton}>
-              {scheduleMode === 'cycles' && (
-                <View style={styles.radioButtonInner} />
-              )}
+        {/* Date Selection Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Time Period</Text>
+          <View style={styles.dateRow}>
+            <View style={styles.dateField}>
+              <Text style={styles.fieldLabel}>Start Date</Text>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={showStartDatePicker}
+                activeOpacity={0.7}>
+                <Text style={styles.dateButtonText}>
+                  {startDate.toLocaleDateString()}
+                </Text>
+                <Text style={styles.dateTimeText}>
+                  {startDate.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.radioLabel}>Number of Cycles</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.radioOption}
-            onPress={() => setScheduleMode('maxGuardTime')}>
-            <View style={styles.radioButton}>
-              {scheduleMode === 'maxGuardTime' && (
-                <View style={styles.radioButtonInner} />
-              )}
+            <View style={styles.dateField}>
+              <Text style={styles.fieldLabel}>End Date</Text>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={showEndDatePicker}
+                activeOpacity={0.7}>
+                <Text style={styles.dateButtonText}>
+                  {endDate.toLocaleDateString()}
+                </Text>
+                <Text style={styles.dateTimeText}>
+                  {endDate.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.radioLabel}>Max Guard Time per Person</Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {scheduleMode === 'cycles' ? (
-          <>
-            <Text style={styles.label}>Number of Cycles:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={numCycles}
-              onChangeText={text => setNumCycles(text)}
-            />
-          </>
-        ) : (
-          <>
-            <Text style={styles.label}>Max Guard Time per Person (hours):</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="decimal-pad"
-              value={maxGuardTimeHours}
-              onChangeText={text => setMaxGuardTimeHours(text)}
-              placeholder="2.0"
-            />
-          </>
-        )}
+        {/* Schedule Mode Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Schedule Mode</Text>
+          <View style={styles.radioContainer}>
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                scheduleMode === 'cycles' && styles.radioOptionActive,
+              ]}
+              onPress={() => setScheduleMode('cycles')}
+              activeOpacity={0.7}>
+              <Text style={styles.radioLabel}>Cycles</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                scheduleMode === 'maxGuardTime' && styles.radioOptionActive,
+              ]}
+              onPress={() => setScheduleMode('maxGuardTime')}
+              activeOpacity={0.7}>
+              <Text style={styles.radioLabel}>Hours</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.radioOption,
+                scheduleMode === 'maxGuardTimeMinutes' &&
+                  styles.radioOptionActive,
+              ]}
+              onPress={() => setScheduleMode('maxGuardTimeMinutes')}
+              activeOpacity={0.7}>
+              <Text style={styles.radioLabel}>Minutes</Text>
+            </TouchableOpacity>
+          </View>
 
-        <Text style={styles.label}>Locations:</Text>
-        {locationList.map((input, index) => (
-          <View key={index} style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder={'Location ' + (index + 1).toString()}
-              value={input}
-              onChangeText={text => {
-                const newList = [...locationList];
-                newList[index] = text;
-                setLocationList(newList);
-              }}
-            />
-            {locationList.length > 1 && (
-              <TouchableOpacity
-                onPress={() => handleRemoveInput(index)}
-                style={styles.removeButton}>
-                <Text style={styles.removeButtonText}>X</Text>
-              </TouchableOpacity>
+          <View style={styles.inputContainer}>
+            {scheduleMode === 'cycles' ? (
+              <>
+                <Text style={styles.fieldLabel}>Number of Cycles</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={numCycles}
+                  onChangeText={text => setNumCycles(text)}
+                  placeholder="1"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </>
+            ) : scheduleMode === 'maxGuardTime' ? (
+              <>
+                <Text style={styles.fieldLabel}>
+                  Max Guard Time per Person (hours)
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  value={maxGuardTimeHours}
+                  onChangeText={text => setMaxGuardTimeHours(text)}
+                  placeholder="2.0"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.fieldLabel}>
+                  Max Guard Time per Person (minutes)
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={maxGuardTimeMinutes}
+                  onChangeText={text => setMaxGuardTimeMinutes(text)}
+                  placeholder="120"
+                  placeholderTextColor={colors.textTertiary}
+                />
+              </>
             )}
           </View>
-        ))}
-        <Button title="Add a location" onPress={handleAddInput} />
-
-        <View style={styles.okButtonContainer}>
-          <Button
-            color="green"
-            title="OK"
-            onPress={navigateToGuardingListFriends}
-          />
         </View>
+
+        {/* Locations Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Locations</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddInput}
+              activeOpacity={0.7}>
+              <Text style={styles.addButtonText}>+ Add</Text>
+            </TouchableOpacity>
+          </View>
+          {locationList.map((input, index) => (
+            <View key={index} style={styles.locationRow}>
+              <TextInput
+                style={styles.locationInput}
+                placeholder={`Location ${index + 1}`}
+                placeholderTextColor={colors.textTertiary}
+                value={input}
+                onChangeText={text => {
+                  const newList = [...locationList];
+                  newList[index] = text;
+                  setLocationList(newList);
+                }}
+              />
+              {locationList.length > 1 && (
+                <TouchableOpacity
+                  onPress={() => handleRemoveInput(index)}
+                  style={styles.removeButton}
+                  activeOpacity={0.7}>
+                  <Text style={styles.removeButtonText}>×</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={navigateToGuardingListFriends}
+          activeOpacity={0.8}>
+          <Text style={styles.primaryButtonText}>Continue</Text>
+        </TouchableOpacity>
       </ScrollView>
+
       <CustomDateTimePicker
         isVisible={isStartDatePickerVisible}
         value={startDate}
         mode="datetime"
-        display="spinner"
+        display="calendar"
         onDateChange={handleStartDateChange}
         onClose={hideStartDatePicker}
       />
@@ -179,7 +267,7 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
         isVisible={isEndDatePickerVisible}
         value={endDate}
         mode="datetime"
-        display="spinner"
+        display="calendar"
         onDateChange={handleEndDateChange}
         onClose={hideEndDatePicker}
       />
@@ -190,92 +278,163 @@ const TimeParameterScreen: React.FC<Props> = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#231F20',
+    backgroundColor: colors.background,
   },
-  label: {
-    fontSize: 18,
-    marginVertical: 8,
-    color: '#FFFFFF',
+  scrollView: {
+    flex: 1,
   },
-  inputRow: {
+  scrollContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  screenTitle: {
+    ...typography.h1,
+    marginBottom: spacing.xs,
+  },
+  screenSubtitle: {
+    ...typography.caption,
+    marginBottom: spacing.xl,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cardHeader: {
     flexDirection: 'row',
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  cardTitle: {
+    ...typography.h3,
+    marginBottom: spacing.md,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  dateField: {
+    flex: 1,
+  },
+  fieldLabel: {
+    ...typography.label,
+    marginBottom: spacing.sm,
+  },
+  dateButton: {
+    backgroundColor: colors.inputBackground,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    alignItems: 'center',
+  },
+  dateButtonText: {
+    ...typography.bodyBold,
+    marginBottom: spacing.xs / 2,
+  },
+  dateTimeText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  inputContainer: {
+    marginTop: spacing.md,
   },
   input: {
-    height: 40,
-    width: '60%',
-    borderColor: 'gray',
+    ...typography.body,
+    backgroundColor: colors.inputBackground,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    color: '#000000',
+    borderColor: colors.inputBorder,
+    color: colors.text,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  locationInput: {
+    ...typography.body,
+    flex: 1,
+    backgroundColor: colors.inputBackground,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    color: colors.text,
+  },
+  addButton: {
+    backgroundColor: colors.secondary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  addButtonText: {
+    ...typography.bodyBold,
+    color: colors.text,
   },
   removeButton: {
-    backgroundColor: 'red',
-    marginLeft: 10,
+    backgroundColor: colors.error,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
   },
   removeButtonText: {
-    color: 'white',
-    fontSize: 16,
+    ...typography.h2,
+    color: colors.text,
+    lineHeight: 24,
   },
-  headerRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+  primaryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    marginTop: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  row: {
-    flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  cell: {
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    textAlign: 'left',
-  },
-  okButtonContainer: {
-    flex: 1,
-    marginTop: 10,
+  primaryButtonText: {
+    ...typography.bodyBold,
+    color: colors.background,
   },
   radioContainer: {
-    marginVertical: 10,
+    flexDirection: 'row',
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  radioButton: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.inputBackground,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minHeight: 48,
   },
-  radioButtonInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#FFFFFF',
+  radioOptionActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.surfaceElevated,
   },
   radioLabel: {
-    fontSize: 16,
-    color: '#FFFFFF',
+    ...typography.bodyBold,
+    color: colors.text,
+    textAlign: 'center',
   },
 });
 

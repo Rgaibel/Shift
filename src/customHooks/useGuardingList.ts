@@ -9,8 +9,9 @@ type UseGuardingListProps = {
   startDate: string | undefined;
   endDate: string | undefined;
   numCycles: string | undefined;
-  scheduleMode?: 'cycles' | 'maxGuardTime';
+  scheduleMode?: 'cycles' | 'maxGuardTime' | 'maxGuardTimeMinutes';
   maxGuardTimeHours?: string;
+  maxGuardTimeMinutes?: string;
   locationList: string[] | undefined;
 };
 
@@ -21,6 +22,7 @@ export const useGuardingList = ({
   numCycles,
   scheduleMode = 'cycles',
   maxGuardTimeHours,
+  maxGuardTimeMinutes,
   locationList = [],
 }: UseGuardingListProps) => {
   const [guardingLists, setGuardingLists] = useState<Person[][]>([]);
@@ -53,13 +55,29 @@ export const useGuardingList = ({
       let minutesPerCycle: number;
 
       if (scheduleMode === 'maxGuardTime') {
-        // Max Guard Time Mode: Calculate cycles from max guard time
-        const maxGuardTimeMinutes = Number(maxGuardTimeHours);
-        if (isNaN(maxGuardTimeMinutes) || maxGuardTimeMinutes <= 0) {
+        // Max Guard Time Mode (Hours): Calculate cycles from max guard time in hours
+        const maxGuardTimeHoursValue = Number(maxGuardTimeHours);
+        if (isNaN(maxGuardTimeHoursValue) || maxGuardTimeHoursValue <= 0) {
           throw new Error('Invalid max guard time. Must be greater than 0.');
         }
 
-        minutesPerSlot = maxGuardTimeMinutes * 60;
+        minutesPerSlot = maxGuardTimeHoursValue * 60;
+        minutesPerCycle = minutesPerSlot * slotsPerCycle;
+        cycles = Math.ceil(totalMinutes / minutesPerCycle);
+
+        if (cycles <= 0) {
+          throw new Error(
+            'Calculated cycles would be 0 or negative. Please adjust the max guard time or time period.',
+          );
+        }
+      } else if (scheduleMode === 'maxGuardTimeMinutes') {
+        // Max Guard Time Mode (Minutes): Calculate cycles from max guard time in minutes
+        const maxGuardTimeMinutesValue = Number(maxGuardTimeMinutes);
+        if (isNaN(maxGuardTimeMinutesValue) || maxGuardTimeMinutesValue <= 0) {
+          throw new Error('Invalid max guard time. Must be greater than 0.');
+        }
+
+        minutesPerSlot = maxGuardTimeMinutesValue;
         minutesPerCycle = minutesPerSlot * slotsPerCycle;
         cycles = Math.ceil(totalMinutes / minutesPerCycle);
 
@@ -145,6 +163,7 @@ export const useGuardingList = ({
     numCycles,
     scheduleMode,
     maxGuardTimeHours,
+    maxGuardTimeMinutes,
     locationList,
   ]);
 

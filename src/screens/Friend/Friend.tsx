@@ -4,19 +4,18 @@ import {
   StyleSheet,
   SafeAreaView,
   Text,
-  ImageBackground,
   SectionList,
   TouchableOpacity,
   Modal,
   TextInput,
-  Button,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
 import {useDispatch, useSelector} from 'react-redux';
 import {addFriend, editFriend} from '../../redux/friendsSlice';
 import {AppState} from '../../store/reducers';
-import friendsData from '../../data/friendsData'; // Import hardcoded friends data
+import friendsData from '../../data/friendsData';
+import {colors, spacing, borderRadius, typography} from '../../theme/colors';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Friend'>;
 
@@ -39,7 +38,6 @@ const Friend: React.FC<Props> = () => {
   const [sortedFriends, setSortedFriends] = useState<FriendData[]>([]);
 
   useEffect(() => {
-    // Sort friendsData alphabetically based on first name
     const sortedData = [...friendsDataRedux].sort((a, b) =>
       a.firstName.localeCompare(b.firstName),
     );
@@ -47,44 +45,62 @@ const Friend: React.FC<Props> = () => {
   }, [friendsDataRedux]);
 
   const openModal = (friend: any) => {
-    console.log(friend);
     setEditedFriend(friend);
     setModalVisible(true);
   };
 
   const closeModal = () => {
-    console.log('bye');
     setModalVisible(false);
+    setEditedFriend({
+      id: 0,
+      firstName: '',
+      lastName: '',
+    });
   };
 
   const handleSave = () => {
-    // Dispatch action to add or edit friend in Redux store
-    if (editedFriend.id === 0) {
-      dispatch(addFriend(editedFriend));
-    } else {
-      dispatch(editFriend(editedFriend));
+    if (editedFriend.firstName.trim() && editedFriend.lastName.trim()) {
+      if (editedFriend.id === 0) {
+        dispatch(addFriend(editedFriend));
+      } else {
+        dispatch(editFriend(editedFriend));
+      }
+      closeModal();
     }
-
-    closeModal();
   };
 
   const renderFriendItem = ({item}: any) => (
-    <View style={styles.friendItem}>
-      <Text
-        style={styles.friendText}>{`${item.firstName} ${item.lastName}`}</Text>
-      <TouchableOpacity onPress={() => openModal(item)}>
-        <Text style={styles.editButton}>Edit</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      onPress={() => openModal(item)}
+      activeOpacity={0.7}
+      style={styles.friendItem}>
+      <View style={styles.friendInfo}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {item.firstName[0]}
+            {item.lastName[0]}
+          </Text>
+        </View>
+        <View>
+          <Text style={styles.friendName}>
+            {item.firstName} {item.lastName}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.editButton}>Edit</Text>
+    </TouchableOpacity>
   );
 
   const renderSectionHeader = ({
     section: {title},
   }: {
     section: {title: string};
-  }) => <Text style={styles.sectionHeader}>{title}</Text>;
+  }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{title}</Text>
+    </View>
+  );
 
-  // Create sections based on the first letter of each name
   const sections = sortedFriends.reduce(
     (acc: Record<string, {title: string; data: FriendData[]}>, friend) => {
       const firstLetter = friend.firstName[0].toUpperCase();
@@ -103,53 +119,94 @@ const Friend: React.FC<Props> = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ImageBackground
-        source={require('../../assets/modern-background-connecting-lines-dots.jpg')}
-        resizeMode="cover"
-        style={styles.image}>
-        <View style={styles.mainContainer}>
-          <Text style={styles.title}>Friends Screen</Text>
-          {sortedFriends.length === 0 ? (
-            <Text style={styles.emptyText}>No friends to display</Text>
-          ) : (
-            <SectionList
-              sections={sectionData}
-              keyExtractor={item => item.id.toString()}
-              renderItem={renderFriendItem}
-              renderSectionHeader={renderSectionHeader}
-            />
-          )}
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isModalVisible}
-            onRequestClose={closeModal}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Edit Friend</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name"
-                  value={editedFriend.firstName}
-                  onChangeText={text =>
-                    setEditedFriend({...editedFriend, firstName: text})
-                  }
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Last Name"
-                  value={editedFriend.lastName}
-                  onChangeText={text =>
-                    setEditedFriend({...editedFriend, lastName: text})
-                  }
-                />
-                <Button title="Save" onPress={handleSave} />
-                <Button title="Cancel" onPress={closeModal} />
-              </View>
-            </View>
-          </Modal>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Friends</Text>
+          <Text style={styles.subtitle}>
+            {sortedFriends.length} friend{sortedFriends.length !== 1 ? 's' : ''}
+          </Text>
         </View>
-      </ImageBackground>
+        {sortedFriends.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No friends to display</Text>
+            <Text style={styles.emptySubtext}>
+              Tap "Add Friend" to get started
+            </Text>
+          </View>
+        ) : (
+          <SectionList
+            sections={sectionData}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderFriendItem}
+            renderSectionHeader={renderSectionHeader}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() =>
+            openModal({
+              id: 0,
+              firstName: '',
+              lastName: '',
+            })
+          }
+          activeOpacity={0.8}>
+          <Text style={styles.addButtonText}>+ Add Friend</Text>
+        </TouchableOpacity>
+      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={closeModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editedFriend.id === 0 ? 'Add Friend' : 'Edit Friend'}
+            </Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>First Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter first name"
+                placeholderTextColor={colors.textTertiary}
+                value={editedFriend.firstName}
+                onChangeText={text =>
+                  setEditedFriend({...editedFriend, firstName: text})
+                }
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Last Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter last name"
+                placeholderTextColor={colors.textTertiary}
+                value={editedFriend.lastName}
+                onChangeText={text =>
+                  setEditedFriend({...editedFriend, lastName: text})
+                }
+              />
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={closeModal}
+                activeOpacity={0.7}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSave}
+                activeOpacity={0.8}>
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -157,69 +214,171 @@ const Friend: React.FC<Props> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#231F20',
+    backgroundColor: colors.background,
   },
-  image: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
+    padding: spacing.lg,
   },
-  mainContainer: {
-    flex: 1,
-    padding: 16,
+  header: {
+    marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#fff',
+    ...typography.h1,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  listContent: {
+    paddingBottom: spacing.lg,
+  },
+  sectionHeader: {
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    borderRadius: borderRadius.sm,
+  },
+  sectionHeaderText: {
+    ...typography.label,
+    color: colors.primary,
+    fontWeight: '600',
   },
   friendItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  friendText: {
-    color: '#fff',
+  friendInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  avatarText: {
+    ...typography.bodyBold,
+    color: colors.background,
+  },
+  friendName: {
+    ...typography.bodyBold,
   },
   editButton: {
-    color: 'blue',
+    ...typography.body,
+    color: colors.primary,
   },
-  modalContainer: {
+  emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  emptyText: {
+    ...typography.h3,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  addButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    marginTop: spacing.md,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  addButtonText: {
+    ...typography.bodyBold,
+    color: colors.background,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
   modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    elevation: 5,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    ...typography.h2,
+    marginBottom: spacing.lg,
+  },
+  inputGroup: {
+    marginBottom: spacing.md,
+  },
+  inputLabel: {
+    ...typography.label,
+    marginBottom: spacing.sm,
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    ...typography.body,
+    backgroundColor: colors.inputBackground,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    marginBottom: 10,
-    padding: 8,
+    borderColor: colors.inputBorder,
+    color: colors.text,
   },
-  emptyText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 18,
-    marginTop: 20,
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
   },
-  sectionHeader: {
-    backgroundColor: '#eee',
-    padding: 8,
-    fontSize: 18,
+  modalButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    ...typography.bodyBold,
+    color: colors.textSecondary,
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  saveButtonText: {
+    ...typography.bodyBold,
+    color: colors.background,
   },
 });
 

@@ -1,16 +1,9 @@
 import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Button,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
-import {CheckBox} from 'react-native-elements';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation';
-import friendsData from '../../data/friendsData'; // Import hardcoded friends data
+import friendsData from '../../data/friendsData';
+import {colors, spacing, borderRadius, typography} from '../../theme/colors';
 
 type Props = NativeStackScreenProps<
   RootStackParamList,
@@ -23,6 +16,9 @@ const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
 
   const createGuardingList = () => {
+    if (selectedFriends.length === 0) {
+      return;
+    }
     navigation.navigate('GuardingListEditScreen', {
       selectedFriends,
       ...params,
@@ -41,31 +37,70 @@ const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
     item,
   }: {
     item: {id: number; firstName: string; lastName: string};
-  }) => (
-    <TouchableOpacity onPress={() => toggleFriendSelection(item.id)}>
-      <View style={styles.friendItem}>
-        <Text
-          style={
-            styles.friendText
-          }>{`${item.firstName} ${item.lastName}`}</Text>
-        <CheckBox
-          checked={selectedFriends.includes(item.id)}
-          onPress={() => toggleFriendSelection(item.id)}
-          containerStyle={styles.checkBoxContainer}
-        />
-      </View>
-    </TouchableOpacity>
-  );
+  }) => {
+    const isSelected = selectedFriends.includes(item.id);
+    return (
+      <TouchableOpacity
+        onPress={() => toggleFriendSelection(item.id)}
+        activeOpacity={0.7}>
+        <View
+          style={[styles.friendItem, isSelected && styles.friendItemSelected]}>
+          <View style={styles.friendInfo}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {item.firstName[0]}
+                {item.lastName[0]}
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.friendName}>
+                {item.firstName} {item.lastName}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.checkboxContainer}>
+            <View
+              style={[
+                styles.customCheckbox,
+                isSelected && styles.customCheckboxSelected,
+              ]}>
+              {isSelected && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Select Participants</Text>
+        <Text style={styles.subtitle}>
+          {selectedFriends.length} of {friendsDataRedux.length} selected
+        </Text>
+      </View>
       <FlatList
         data={friendsDataRedux}
         keyExtractor={item => item.id.toString()}
         renderItem={renderFriendItem}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
-
-      <Button title="Create" onPress={createGuardingList} />
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.primaryButton,
+            selectedFriends.length === 0 && styles.primaryButtonDisabled,
+          ]}
+          onPress={createGuardingList}
+          disabled={selectedFriends.length === 0}
+          activeOpacity={0.8}>
+          <Text style={styles.primaryButtonText}>
+            Create Schedule ({selectedFriends.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -73,27 +108,110 @@ const GuardingListFriendsScreen: React.FC<Props> = ({route, navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: colors.background,
   },
-  label: {
-    fontSize: 18,
-    marginVertical: 8,
+  header: {
+    padding: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  title: {
+    ...typography.h2,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  listContent: {
+    padding: spacing.md,
   },
   friendItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  friendText: {
+  friendItemSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.surfaceElevated,
+  },
+  friendInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  avatarText: {
+    ...typography.bodyBold,
+    color: colors.background,
+  },
+  friendName: {
+    ...typography.bodyBold,
+  },
+  checkboxContainer: {
+    marginLeft: spacing.md,
+  },
+  customCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: colors.borderLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.inputBackground,
+  },
+  customCheckboxSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkmark: {
+    color: colors.background,
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
   },
-  checkBoxContainer: {
-    marginLeft: 'auto', // This will move the checkbox to the right
+  footer: {
+    padding: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  primaryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  primaryButtonDisabled: {
+    backgroundColor: colors.border,
+    opacity: 0.5,
+  },
+  primaryButtonText: {
+    ...typography.bodyBold,
+    color: colors.background,
   },
 });
 
